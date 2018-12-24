@@ -6,7 +6,7 @@ const matcher = require('micromatch');
 const aes = require('../helper/aes')
 const {sign, md5} = require('../helper/crypto')
 const {isExclude} = require('../generic/excludes')
-const {defaultKey} = require('../generic/config')
+const {AES_SALT} = require('../generic/config')
 const redis = require('../helper/redis')
 
 const jsonBussError = function (res, message) {
@@ -22,7 +22,7 @@ const decodeToken = function (token) {
 		return null
 	}
 
-	const tokenDecodeStr = aes.decode(token, defaultKey)
+	const tokenDecodeStr = aes.decode(token, AES_SALT)
 	const tokenDecodeArr = tokenDecodeStr.split(',')
 	if (tokenDecodeArr.length !== 2) { // invalid token
 		return null

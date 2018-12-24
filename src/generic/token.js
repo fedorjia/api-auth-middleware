@@ -2,10 +2,10 @@
  * decode token
  */
 const aes = require('../helper/aes')
-const {defaultKey} = require('./config')
+const {AES_SALT} = require('./config')
 
 module.export = function(token) {
-	const str = aes.decode(token, defaultKey)
+	const str = aes.decode(token, AES_SALT)
 	const arr = str.split(',')
 	if (arr.length !== 2) {
 		return null
