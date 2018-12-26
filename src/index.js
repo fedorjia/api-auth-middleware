@@ -13,8 +13,8 @@ exports.authMiddleware = require('./middleware/auth')
 exports.decodeToken = decodeToken
 
 /**
- * if the password is valid
+ * if the nonce is valid
  */
-exports.isValidPassword = function(secret, password) {
-	return md5(password, MD5_SALT) === secret
+exports.isValidNonce = function(secret, nonce) {
+	return md5(nonce, MD5_SALT) === secret
 }

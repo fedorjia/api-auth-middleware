@@ -1,52 +1,26 @@
-const crypto = require('crypto')
-
-const md5 = function (str, salt) {
-	const hash = crypto.createHash('md5')
-	hash.update(str + (salt || ''))
-	// hash.update(new Buffer(str + (salt || '')).toString('binary'))
-	return hash.digest('hex')
-}
-
-const sign = function (data, key) {
-	const keys = []
-	for (let k in data) {
-		if (data.hasOwnProperty(k)) {
-			if (JSON.stringify(data[k]).length < 64) { // exclude value which very long
-				keys.push(k)
-			}
-		}
-	}
-	let str = ''
-	keys.sort()
-	keys.forEach((key) => {
-		str += (key + '=' + data[key] + '&')
-	})
-	str += 'key=' + key
-	return md5(str).toUpperCase()
-}
-
+const {sign} = require('../src/helper/crypto')
 
 /**
  * generate signature
  */
-function generateSignature(userid, timestamp, token, urlPath, params) {
+function generateSignature(accountId, timestamp, token, urlPath, params) {
 	params = Object.assign({
-		v_user: userid,
-		v_timestamp: timestamp,
-		v_url: urlPath
+		__url__: urlPath,
+		__account__: accountId,
+		__timestamp__: timestamp
 	}, params)
 
 	return sign(params, token)
 }
 
 
-const userid = 1
+const accountId = 1
 const timestamp = 1540256129230
 const urlPath = '/api/account/1'
-const token = '3LMlDNiXtZkg/+rTufFIL2BpbkA5hJql7ariRZsiBDudPSiE4mbCuYEla3CEtdWM'
+const token = '1+680btmwiJ98uVGzLwuC/S7zfYJDY2LY6t1QhdziEcOCpKNMEZGZtQqV04MBL+k'
 const params = {
-
+	version: '1.0.1'
 }
 
-// 88BA809F9A0A23731406B9E224C30103
-console.log(generateSignature(userid, timestamp, token, urlPath, params))
+// 6DCD3B395B6D74BB98A0D8E6B56DDA30
+console.log(generateSignature(accountId, timestamp, token, urlPath, params))
