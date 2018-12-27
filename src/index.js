@@ -1,6 +1,16 @@
-const {md5} = require('./helper/crypto')
-const {MD5_SALT} = require('./generic/config')
-const decodeToken = require('./generic/token')
+const {md5, uniqueid} = require('./helper/crypto')
+const aes = require('./helper/aes')
+const {MD5_SALT, AES_SALT} = require('./generic/config')
+
+/**
+ * auth cache
+ */
+const cache = exports.cache = require('./helper/cache')
+
+/**
+ * detect auth token & nonce
+ */
+exports.detectAuth = require('./generic/detect')
 
 /**
  * authorization middleware
@@ -8,13 +18,27 @@ const decodeToken = require('./generic/token')
 exports.authMiddleware = require('./middleware/auth')
 
 /**
- * decode token
+ * create auth and store
  */
-exports.decodeToken = decodeToken
+exports.createAuth = async function(id, permissions) {
+	const nonce = uniqueid(24)
+	const secret = md5(nonce, MD5_SALT)
+	const token = aes.encode(`id=${id}&secret=${secret}`, AES_SALT)
 
-/**
- * if the nonce is valid
- */
-exports.isValidNonce = function(secret, nonce) {
-	return md5(nonce, MD5_SALT) === secret
+	// save auth to cache
+	if (cache.enabled()) {
+		const o = {
+			nonce,
+			token
+		}
+		if (permissions) {
+			o.permissions = permissions
+		}
+		await cache.save(`account:${id}`, o)
+	}
+
+	return {
+		nonce,
+		token
+	}
 }

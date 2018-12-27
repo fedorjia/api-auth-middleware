@@ -2,8 +2,12 @@ const axios = require('axios')
 
 const CACHE_URL = 'http://localhost:4501/get'
 
-module.exports = class {
-	constructor(option) {
+class Cache {
+	constructor() {
+		this.option = {}
+	}
+
+	setup(option) {
 		if (!option) {
 			throw new Error('cache constructor init error')
 		}
@@ -14,6 +18,10 @@ module.exports = class {
 			throw new Error('appsecret required in cache constructor')
 		}
 		this.option = option
+	}
+
+	enabled() {
+		return this.option['appid'] && this.option['appsecret']
 	}
 
 	async get(key) {
@@ -31,4 +39,5 @@ module.exports = class {
 	}
 }
 
+module.exports = new Cache()
 
