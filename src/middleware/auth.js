@@ -83,7 +83,6 @@ module.exports = function (config = {
 
 			const params = Object.assign({
 				__url__: pathname,
-				__account__: accountId,
 				__timestamp__: timestamp
 			}, req.query, req.body)
 
