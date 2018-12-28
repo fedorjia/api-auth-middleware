@@ -6,7 +6,7 @@ const matcher = require('micromatch');
 const {sign, md5} = require('../helper/crypto')
 const {isExclude} = require('../generic/excludes')
 const detectAuth = require('../generic/detect')
-const cache = require('../helper/cache')
+const authCache = require('../helper/cache')
 
 const jsonBussError = function (res, message) {
 	res.json({status: 300, body: null, message: message})
@@ -41,7 +41,8 @@ const getPermission = function (authConfig = {}, uri, method) {
  */
 module.exports = function (config = {
 	prefix: '/api',
-	isVerifyPermission: false
+	isVerifyPermission: false,
+	cache: null
 }) {
 	return async (req, res, next) => {
 		try {
@@ -90,24 +91,31 @@ module.exports = function (config = {
 			const params = Object.assign({
 				__timestamp__: timestamp
 			}, req.query, req.body)
-			
+
 			// verify signature
 			const mSignature = sign(params, token)
 			if (signature !== mSignature) {
 				return jsonBussError(res, 'invalid signature')
 			}
 
-			if (!config.isVerifyPermission) { // not necessary verify permission
+			// not necessary verify permission
+			if (!config.isVerifyPermission) {
 				res.locals.account = account
 				return next()
 			}
 
-			// permissions
-			if (!cache.enabled()) {
+			// verify permission
+			if (config.cache && !authCache.enabled()) {
+				// enable cache
+				authCache.enable(config.cache)
+			}
+
+			if (!authCache.enabled()) {
 				return jsonLoginError(res, 'cache not enabled!')
 			}
+
 			// get account info
-			const cacheRs = await cache.get(md5(`account:${account}`))
+			const cacheRs = await authCache.get(md5(`account:${account}`))
 			if (!cacheRs) {
 				return jsonLoginError(res, 'account not found in cache, should login!')
 			}
@@ -116,7 +124,6 @@ module.exports = function (config = {
 			if (!permissions || permissions.length === 0) {
 				return jsonBussError(res, 'no permissions')
 			}
-
 			// detect permission
 			const permission = getPermission(config.permissions, uri, method)
 			if (!permission) { // not found permission

@@ -1,13 +1,17 @@
 const axios = require('axios')
 
-const CACHE_URL = 'http://localhost:4501'
+const axiosInstance = axios.create({
+	timeout: 6000,
+})
 
 class Cache {
 	constructor() {
-		this.option = {}
+		this.option = {
+			url: 'http://localhost:4501'
+		}
 	}
 
-	setup(option) {
+	enable(option) {
 		if (!option) {
 			throw new Error('cache constructor init error')
 		}
@@ -17,7 +21,7 @@ class Cache {
 		if (!option.appsecret) {
 			throw new Error('appsecret required in cache constructor')
 		}
-		this.option = option
+		Object.assign(this.option, option)
 	}
 
 	enabled() {
@@ -25,9 +29,9 @@ class Cache {
 	}
 
 	async get(key) {
-		const res = await axios.request({
+		const res = await axiosInstance.request({
 			method: 'GET',
-			url: `${CACHE_URL}/get/${key}`,
+			url: `${this.option.url}/get/${key}`,
 			headers: this.option
 		})
 
@@ -37,11 +41,11 @@ class Cache {
 		}
 		return data.body
 	}
-	
+
 	async set(key, value) {
-		const res = await axios.request({
+		const res = await axiosInstance.request({
 			method: 'POST',
-			url: `${CACHE_URL}/set`,
+			url: `${this.option.url}/set`,
 			data: {
 				key,
 				value
