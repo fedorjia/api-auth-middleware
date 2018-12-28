@@ -120,19 +120,17 @@ module.exports = function (config = {
 				return jsonLoginError(res, 'account not found in cache, should login!')
 			}
 
-			const permissions = cacheRs.permissions
-			if (!permissions || permissions.length === 0) {
-				return jsonBussError(res, 'no permissions')
+			const accountPermissions = cacheRs.permissions
+			if (!accountPermissions || accountPermissions.length === 0) {
+				return jsonBussError(res, 'account has no permissions')
 			}
 			// detect permission
 			const permission = getPermission(config.permissions, uri, method)
-			if (!permission) { // not found permission
-				return jsonBussError(res, 'permission not defined')
+			if (permission) {
+				if (!accountPermissions.includes(permission)) {
+					return jsonBussError(res, 'permission not allowed')
+				}
 			}
-			if (!permissions.includes(permission)) {
-				return jsonBussError(res, 'permission not allowed')
-			}
-
 			// set account to res.locals
 			res.locals.account = account
 

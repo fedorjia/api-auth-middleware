@@ -1,6 +1,6 @@
 {
   "name": "api-auth-middleware",
-  "version": "1.0.18",
+  "version": "1.0.20",
   "description": "api authorization middleware",
   "repository": {
     "type": "git",
