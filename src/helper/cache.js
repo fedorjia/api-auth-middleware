@@ -1,6 +1,6 @@
 const axios = require('axios')
 
-const CACHE_URL = 'http://localhost:4501/get'
+const CACHE_URL = 'http://localhost:4501'
 
 class Cache {
 	constructor() {
@@ -27,13 +27,31 @@ class Cache {
 	async get(key) {
 		const res = await axios.request({
 			method: 'GET',
-			url: `${CACHE_URL}/${key}`,
+			url: `${CACHE_URL}/get/${key}`,
 			headers: this.option
 		})
 
 		const data = res.data
 		if (data.status !== 200) {
-			throw new Error(data)
+			throw new Error(data.message)
+		}
+		return data.body
+	}
+	
+	async set(key, value) {
+		const res = await axios.request({
+			method: 'POST',
+			url: `${CACHE_URL}/set`,
+			data: {
+				key,
+				value
+			},
+			headers: this.option
+		})
+
+		const data = res.data
+		if (data.status !== 200) {
+			throw new Error(data.message)
 		}
 		return data.body
 	}

@@ -3,7 +3,7 @@
  */
 const matcher = require('micromatch');
 
-const {sign} = require('../helper/crypto')
+const {sign, md5} = require('../helper/crypto')
 const {isExclude} = require('../generic/excludes')
 const detectAuth = require('../generic/detect')
 const cache = require('../helper/cache')
@@ -48,7 +48,13 @@ module.exports = function (config = {
 			const url = req.url
 			const method = req.method.toLowerCase()
 			const prefix = config.prefix || ''
-			const uri = url.substring(prefix.length)
+			const tmpIndex = url.indexOf('?')
+			let uri = url.substring(prefix.length)
+			if (tmpIndex !== -1) {
+				uri = url.substring(prefix.length, tmpIndex)
+			} else {
+				uri = url.substring(prefix.length)
+			}
 
 			const excludes = config.excludes
 			if (excludes && isExclude(excludes, url)) {
@@ -74,18 +80,17 @@ module.exports = function (config = {
 				return jsonBussError(res, 'timestamp required in headers')
 			}
 
-			const accountId = detectAuth(token, nonce)
+			const account = detectAuth(token, nonce)
 
-			let pathname = req.pathname
-			if (typeof pathname !== 'string') {
-				pathname = req.path
-			}
+			// let pathname = req.pathname
+			// if (typeof pathname !== 'string') {
+			// 	pathname = req.path
+			// }
 
 			const params = Object.assign({
-				__url__: pathname,
 				__timestamp__: timestamp
 			}, req.query, req.body)
-
+			
 			// verify signature
 			const mSignature = sign(params, token)
 			if (signature !== mSignature) {
@@ -93,7 +98,7 @@ module.exports = function (config = {
 			}
 
 			if (!config.isVerifyPermission) { // not necessary verify permission
-				res.locals.accountId = accountId
+				res.locals.account = account
 				return next()
 			}
 
@@ -102,7 +107,7 @@ module.exports = function (config = {
 				return jsonLoginError(res, 'cache not enabled!')
 			}
 			// get account info
-			const cacheRs = await cache.get(`account:${accountId}`)
+			const cacheRs = await cache.get(md5(`account:${account}`))
 			if (!cacheRs) {
 				return jsonLoginError(res, 'account not found in cache, should login!')
 			}
@@ -122,7 +127,7 @@ module.exports = function (config = {
 			}
 
 			// set account to res.locals
-			res.locals.accountId = accountId
+			res.locals.account = account
 
 			return next()
 		} catch (err) {

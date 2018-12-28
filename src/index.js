@@ -20,10 +20,10 @@ exports.authMiddleware = require('./middleware/auth')
 /**
  * create auth and store
  */
-exports.createAuth = async function(id, permissions) {
+exports.createAuth = async function(account, permissions) {
 	const nonce = uniqueid(24)
 	const secret = md5(nonce, MD5_SALT)
-	const token = aes.encode(`id=${id}&secret=${secret}`, AES_SALT)
+	const token = aes.encode(`account=${account}&secret=${secret}`, AES_SALT)
 
 	// save auth to cache
 	if (cache.enabled()) {
@@ -34,7 +34,7 @@ exports.createAuth = async function(id, permissions) {
 		if (permissions) {
 			o.permissions = permissions
 		}
-		await cache.save(`account:${id}`, o)
+		await cache.set(md5(`account:${account}`), o)
 	}
 
 	return {
