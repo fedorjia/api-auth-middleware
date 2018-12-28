@@ -130,7 +130,7 @@ module.exports = function (config = {
 				return jsonBussError(res, 'permission not defined')
 			}
 			if (!permissions.includes(permission)) {
-				return jsonBussError(res, 'no permission')
+				return jsonBussError(res, 'permission not allowed')
 			}
 
 			// set account to res.locals
