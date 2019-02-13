@@ -73,10 +73,10 @@ module.exports = function (config = {
 			}
 
 			// const method = req.method.toLowerCase()
-			const token = req.headers.h_token
-			const nonce = req.headers.h_nonce
-			const signature = req.headers.h_signature
-			const timestamp = req.headers.h_timestamp
+			const token = req.headers['h-token']
+			const nonce = req.headers['h-nonce']
+			const signature = req.headers['h-signature']
+			const timestamp = req.headers['h-timestamp']
 
 			if (!token) {
 				return jsonBussError(res, 'token required in headers')
