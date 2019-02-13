@@ -8,7 +8,7 @@ exports.isExclude = function(excludes, url) {
 
 	let is = false
 	for (let exclude of excludes) {
-		if (url.startsWith(exclude)) {
+		if (url === '/' || url.startsWith(exclude)) {
 			is = true
 			break
 		}
