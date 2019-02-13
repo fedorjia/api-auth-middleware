@@ -4,7 +4,7 @@
 const matcher = require('micromatch');
 
 const {sign, md5} = require('../helper/crypto')
-const {isExclude} = require('../generic/excludes')
+const {match} = require('../generic/match')
 const detectAuth = require('../generic/detect')
 const authCache = require('../helper/cache')
 
@@ -57,8 +57,18 @@ module.exports = function (config = {
 				uri = url.substring(prefix.length)
 			}
 
-			const excludes = config.excludes
-			if (excludes && isExclude(excludes, url)) {
+			const includes = config.includes
+			if (!includes) {
+				return next()
+			}
+
+			if (!match(includes, url)) {
+				return next()
+			}
+
+			const excludes = config.excludes || []
+			excludes.push('/favicon.ico')
+			if (match(excludes, url)) {
 				return next()
 			}
 
