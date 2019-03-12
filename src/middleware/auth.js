@@ -6,7 +6,7 @@ const matcher = require('micromatch');
 const {sign, md5} = require('../helper/crypto')
 const {match} = require('../generic/match')
 const detectAuth = require('../generic/detect')
-const authCache = require('../helper/cache')
+const cacheInstance = require('../helper/cache')
 
 const jsonBussError = function (res, message) {
 	res.json({status: 300, body: null, message: message})
@@ -44,6 +44,11 @@ module.exports = function (config = {
 	isVerifyPermission: false,
 	cache: null
 }) {
+	
+	if (config.cache) {
+		cacheInstance.enable(config.cache)
+	}
+	
 	return async (req, res, next) => {
 		try {
 			const url = req.url
@@ -115,17 +120,12 @@ module.exports = function (config = {
 			}
 
 			// verify permission
-			if (config.cache && !authCache.enabled()) {
-				// enable cache
-				authCache.enable(config.cache)
-			}
-
-			if (!authCache.enabled()) {
+			if (config.cache && !cacheInstance.enabled()) {
 				return jsonLoginError(res, 'cache not enabled!')
 			}
 
 			// get account info
-			const cacheRs = await authCache.get(md5(`account:${account}`))
+			const cacheRs = await cacheInstance.get(md5(`account:${account}`))
 			if (!cacheRs) {
 				return jsonLoginError(res, 'account not found in cache, should login!')
 			}
